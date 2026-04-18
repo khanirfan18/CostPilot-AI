@@ -94,17 +94,17 @@ export default function AboutPage() {
 
         {/* Bottom Socials */}
         <div className="absolute bottom-6 md:bottom-8 w-full z-40 flex justify-center items-center gap-5 md:gap-12 px-4">
-          <a href="https://github.com/irfan" target="_blank" rel="noopener noreferrer" 
+          <a href="https://github.com/khanirfan18" target="_blank" rel="noopener noreferrer" 
              className="relative flex items-center justify-center p-3 md:p-5 bg-white/30 backdrop-blur-md border-[3px] border-pink-500 hover:border-pink-400 hover:bg-pink-500/20 rounded-xl md:rounded-2xl transition-all duration-300 hover:-translate-y-2 shadow-[0_0_15px_rgba(236,72,153,0.5)] hover:shadow-[0_0_25px_rgba(236,72,153,0.8)] group">
             <Github className="w-5 h-5 md:w-8 md:h-8 text-pink-600 group-hover:text-pink-100 transition-colors" />
           </a>
           
-          <a href="https://twitter.com/irfan" target="_blank" rel="noopener noreferrer" 
+          <a href="https://x.com/irfnn_k" target="_blank" rel="noopener noreferrer" 
              className="relative flex items-center justify-center p-3 md:p-5 bg-white/30 backdrop-blur-md border-[3px] border-cyan-400 hover:border-cyan-300 hover:bg-cyan-400/20 rounded-xl md:rounded-2xl transition-all duration-300 hover:-translate-y-2 shadow-[0_0_15px_rgba(34,211,238,0.5)] hover:shadow-[0_0_25px_rgba(34,211,238,0.8)] group">
             <Twitter className="w-5 h-5 md:w-8 md:h-8 text-cyan-600 group-hover:text-cyan-100 transition-colors" />
           </a>
           
-          <a href="https://linkedin.com/in/irfan" target="_blank" rel="noopener noreferrer" 
+          <a href="https://www.linkedin.com/in/irfankhan1855/" target="_blank" rel="noopener noreferrer" 
              className="relative flex items-center justify-center p-3 md:p-5 bg-white/30 backdrop-blur-md border-[3px] border-emerald-400 hover:border-emerald-300 hover:bg-emerald-400/20 rounded-xl md:rounded-2xl transition-all duration-300 hover:-translate-y-2 shadow-[0_0_15px_rgba(52,211,153,0.5)] hover:shadow-[0_0_25px_rgba(52,211,153,0.8)] group">
             <Linkedin className="w-5 h-5 md:w-8 md:h-8 text-emerald-600 group-hover:text-emerald-100 transition-colors" />
           </a>
