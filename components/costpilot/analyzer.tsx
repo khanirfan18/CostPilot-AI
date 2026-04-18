@@ -119,7 +119,18 @@ function generateAmortization(principal: number, annualRate: number, months: num
   return schedule
 }
 
-const AI_PROMPT = `You are a brutally honest financial transparency analyzer. Analyze the agreement below and return ONLY valid raw JSON — no markdown, no backticks, no explanation whatsoever. Return EXACTLY this structure, making sure to calculate true costs, actual cash flow, and effective APR realistically.
+const AI_PROMPT = `You are a brutally honest financial transparency analyzer. 
+
+CRITICAL INPUT VALIDATION RULE:
+If the text provided is completely random, nonsensical, or clearly NOT a financial agreement (no mention of any money formatting or loan details), return EXACTLY:
+{"error": "INVALID"}
+
+If the text looks somewhat like a financial agreement (mentions money or loans) but is missing essential details like the Principal/Loan Amount, Interest Rate, or Tenure, return EXACTLY:
+{"error": "PARTIAL", "missingFields": ["list", "of", "missing", "key details"]}
+
+Only if the agreement is reasonably complete should you proceed with the calculation.
+
+Analyze the agreement below and return ONLY valid raw JSON — no markdown, no backticks, no explanation whatsoever. Return EXACTLY this structure, making sure to calculate true costs, actual cash flow, and effective APR realistically.
 
 RULES FOR CALCULATION:
 1. loanAmount is the stated principal.
@@ -278,6 +289,7 @@ export function Analyzer() {
     gemini: false,
     openai: false
   })
+  const [freeTries, setFreeTries] = useState(3)
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -286,6 +298,10 @@ export function Analyzer() {
       gemini: localStorage.getItem("user_costpilot_gemini_key") || "",
       openai: localStorage.getItem("user_costpilot_openai_key") || ""
     })
+    const storedTries = localStorage.getItem("costpilot_free_tries")
+    if (storedTries !== null) {
+      setFreeTries(parseInt(storedTries, 10))
+    }
   }, [])
 
   // Save API keys to localStorage when they change
@@ -377,6 +393,25 @@ export function Analyzer() {
       return
     }
 
+    if (activeTab === "ai") {
+      const activeOpenRouter = apiKeys.openrouter || ""
+      const activeGemini = apiKeys.gemini || ""
+      const activeOpenAI = apiKeys.openai || ""
+      
+      if (activeOpenRouter && !activeOpenRouter.startsWith("sk-or-")) {
+        addToast("Please provide the correct OpenRouter API key format (starts with sk-or-...)", "error")
+        return
+      }
+      if (activeOpenAI && !activeOpenAI.startsWith("sk-")) {
+        addToast("Please provide the correct OpenAI API key format (starts with sk-...)", "error")
+        return
+      }
+      if (activeGemini && activeGemini.length < 30) {
+        addToast("Please provide a valid Gemini API key format", "error")
+        return
+      }
+    }
+
     setIsAnalyzing(true)
     setResult(null)
 
@@ -396,11 +431,38 @@ export function Analyzer() {
         const hasKeys = activeOpenRouter || activeGemini || activeOpenAI
         
         if (!hasKeys) {
-          // Fallback if absolutely no keys manually or in env
+      if (freeTries > 0) {
+        const devOpenRouter = process.env.NEXT_PUBLIC_OPENROUTER_KEY || ""
+        const devGemini = process.env.NEXT_PUBLIC_GEMINI_KEY || ""
+        
+        if (devOpenRouter || devGemini) {
+          try {
+            if (devOpenRouter) {
+              analysisResult = await callOpenRouter(agreementText, devOpenRouter)
+            } else {
+              analysisResult = await callGemini(agreementText, devGemini)
+            }
+            
+            const newTries = freeTries - 1
+            setFreeTries(newTries)
+            localStorage.setItem("costpilot_free_tries", newTries.toString())
+            addToast(`Accurate Analysis Used (${newTries} free tries left). Provide your API key for unlimited access!`, "success")
+          } catch (e) {
+            await new Promise(resolve => setTimeout(resolve, 1500))
+            analysisResult = { ...DEMO_DATA }
+            addToast("Demo is fast but for super accurate results, use your own API key!", "info")
+          }
+        } else {
           await new Promise(resolve => setTimeout(resolve, 1500))
           analysisResult = { ...DEMO_DATA }
-          addToast("Using Static Demo Mode", "info")
-        } else {
+          addToast("Demo is fast but for super accurate results, use your own API key!", "info")
+        }
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 1500))
+        analysisResult = { ...DEMO_DATA }
+        addToast("Out of free tries! Fast demo used. Add your API key for super accurate results!", "info")
+      }
+    } else {
           try {
             if (activeOpenRouter) {
               analysisResult = await callOpenRouter(agreementText, activeOpenRouter)
@@ -436,7 +498,21 @@ export function Analyzer() {
         }
       }
 
-      setResult(analysisResult)
+      if (activeTab === "ai" && analysisResult) {
+      const gResult = analysisResult as any;
+      if (gResult.error === "INVALID") {
+        addToast("Please provide valid input. We couldn't detect a financial agreement.", "error")
+        setIsAnalyzing(false)
+        return
+      } else if (gResult.error === "PARTIAL") {
+        const missing = gResult.missingFields ? gResult.missingFields.join(", ") : "key details"
+        addToast(`Almost there! Please give input with this mention: ${missing}.`, "error")
+        setIsAnalyzing(false)
+        return
+      }
+    }
+
+    setResult(analysisResult)
     } catch {
       addToast("Analysis failed", "error")
     } finally {
@@ -663,8 +739,8 @@ export function Analyzer() {
             <textarea
               value={agreementText}
               onChange={(e) => { setAgreementText(e.target.value); if (result) setResult(null); }}
-              placeholder="Paste your loan agreement here..."
-              className="w-full min-h-[200px] bg-[#0A0A12] border border-[#27272A] rounded-xl p-4 text-[#d1d5db] font-mono text-sm focus:border-[#8B5CF6] focus:outline-none resize-y transition-colors"
+              placeholder={EXAMPLE_TEXT}
+              className="w-full min-h-[300px] bg-[#0A0A12] border border-[#27272A] rounded-xl p-4 text-[#d1d5db] font-mono text-sm focus:border-[#8B5CF6] focus:outline-none resize-y transition-colors placeholder:whitespace-pre-line placeholder:text-[#52525B]"
             />
             <div className="flex items-center justify-between mt-2 text-xs text-[#71717A]">
               <span>Supports any format</span>

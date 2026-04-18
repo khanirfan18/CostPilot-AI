@@ -1,5 +1,0 @@
-const fs = require('fs')
-let content = fs.readFileSync('hooks/use-toast.ts', 'utf-8')
-content = content.replace("import type { ToastActionElement, ToastProps } from '@/components/ui/toast'", "// @ts-ignore\nimport type { ToastActionElement, ToastProps } from '@/components/ui/toast'")
-content = content.replace("onOpenChange: (open) => {", "onOpenChange: (open: boolean) => {")
-fs.writeFileSync('hooks/use-toast.ts', content)

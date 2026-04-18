@@ -1,6 +1,6 @@
 import re
 
-with open("components/clarity-lens/analyzer.tsx", "r") as f:
+with open("components/costpilot/analyzer.tsx", "r") as f:
     content = f.read()
 
 # 1. Update text area onChange to clear results
@@ -122,6 +122,6 @@ content = re.sub(
     flags=re.DOTALL
 )
 
-with open("components/clarity-lens/analyzer.tsx", "w") as f:
+with open("components/costpilot/analyzer.tsx", "w") as f:
     f.write(content)
 
