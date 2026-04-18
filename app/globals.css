@@ -1,0 +1,165 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: #0A0A12;
+  --foreground: #E4E4E7;
+  --card: #12121A;
+  --card-foreground: #E4E4E7;
+  --popover: #12121A;
+  --popover-foreground: #E4E4E7;
+  --primary: #8B5CF6;
+  --primary-foreground: #0A0A12;
+  --secondary: #1A1A25;
+  --secondary-foreground: #E4E4E7;
+  --muted: #1A1A25;
+  --muted-foreground: #71717A;
+  --accent: #22D3EE;
+  --accent-foreground: #0A0A12;
+  --destructive: #ef4444;
+  --destructive-foreground: #E4E4E7;
+  --border: #1A1A25;
+  --input: #1A1A25;
+  --ring: #8B5CF6;
+  --radius: 0.75rem;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-heading: var(--font-heading), 'Space Grotesk', system-ui, sans-serif;
+  --font-numeric: var(--font-numeric), 'JetBrains Mono', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-tight;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-numeric), monospace;
+}
+
+/* Static subtle dot grid for efficiency */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(228,228,231,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Minimal Pulse animation for status dots */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.pulse-dot {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+
+/* Violet subtle glow */
+.demo-glow {
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+}
+
+/* Static smooth chevron */
+.bounce-slow {
+  animation: bounce-subtle 3s ease-in-out infinite;
+}
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
+/* Fade in animation for sections - minimal length */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 400ms ease-out, transform 400ms ease-out;
+}
+
+.fade-in-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Toast animations */
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+.toast-enter {
+  animation: slideIn 200ms ease-out;
+}
+
+.toast-exit {
+  animation: slideOut 200ms ease-in;
+}
+
+/* Print styles */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .print-only { display: block !important; }
+  * { color: black !important; background: white !important; border-color: #ccc !important; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* Super low opacity square mat pattern for the whole background */
+.square-mat {
+  background-image: 
+    linear-gradient(to right, rgba(139, 92, 246, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(139, 92, 246, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}

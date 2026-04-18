@@ -1,0 +1,53 @@
+import type { Metadata, Viewport } from 'next'
+import { Inter, Space_Grotesk, JetBrains_Mono } from 'next/font/google'
+import { Analytics } from '@vercel/analytics/next'
+import './globals.css'
+
+const inter = Inter({ 
+  subsets: ["latin"],
+  variable: '--font-inter',
+  weight: ['400', '500', '600'],
+  display: 'swap',
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: '--font-heading',
+  weight: ['500', '600', '700'],
+  display: 'swap',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: '--font-numeric',
+  weight: ['400', '500', '600'],
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: 'ClarityLens — AI Financial Audit Engine',
+  description: 'Paste any loan, credit card, or BNPL agreement. ClarityLens extracts every term, calculates your real total cost, and flags every hidden charge — in seconds.',
+  keywords: ['financial audit', 'loan calculator', 'hidden charges', 'fintech'],
+  authors: [{ name: 'ClarityLens' }],
+}
+
+export const viewport: Viewport = {
+  themeColor: '#0a0a12',
+  width: 'device-width',
+  initialScale: 1,
+}
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode
+}>) {
+  return (
+    <html lang="en" className="bg-[#0A0A12] scroll-smooth">
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased bg-[#0A0A12] text-[#E4E4E7]`}>
+        {children}
+        {process.env.NODE_ENV === 'production' && <Analytics />}
+      </body>
+    </html>
+  )
+}
