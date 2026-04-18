@@ -20,7 +20,7 @@ export function Hero() {
       <div className="relative z-10 max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-12 sm:gap-16">
         
         {/* Left Side: Headlines */}
-        <div className="flex-1 text-left sm:text-center lg:text-left">
+        <div className="flex-1 text-center lg:text-left">
           {/* Top badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#1A1A25] bg-[#12121A]/80 mb-8 mx-auto lg:mx-0">
             <span className="w-2 h-2 rounded-full bg-[#8B5CF6] pulse-dot" />
@@ -28,7 +28,7 @@ export function Hero() {
           </div>
 
           {/* Headline */}
-          <h1 className="font-heading text-[#EAB308]xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6">
+          <h1 className="font-heading text-4xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6">
             <span className="text-[#E4E4E7]">Understand the</span>
             <br />
             <span className="text-[#8B5CF6] inline-block mt-2">True Cost</span>
@@ -37,7 +37,7 @@ export function Hero() {
           </h1>
 
           {/* Subtext */}
-          <p className="font-heading text-[#A1A1AA] text-[#EAB308]ase sm:text-lg max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed">
+          <p className="font-heading text-[#A1A1AA] text-base sm:text-lg max-w-xl mx-auto lg:mx-0 mb-10 leading-relaxed">
             Paste any loan, credit card, or BNPL agreement. Our AI extracts every term, 
             calculates the real total cost, and surfaces every hidden charge — in seconds.
           </p>

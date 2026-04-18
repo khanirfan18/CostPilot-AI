@@ -33,7 +33,7 @@ export function HowItWorks() {
     <section
       id="how-it-works"
       ref={ref}
-      className={`py-24 px-4 fade-in-section ${isVisible ? "visible" : ""}`}
+      className={`py-16 sm:py-24 px-4 fade-in-section ${isVisible ? "visible" : ""}`}
     >
       <div className="max-w-4xl mx-auto">
         {/* Section header */}
@@ -54,11 +54,11 @@ export function HowItWorks() {
         <div className="space-y-6">
           {steps.map((step, index) => (
             <div key={step.number} className="relative">
-              <div className="flex items-start gap-6">
+              <div className="flex items-stretch gap-6">
                 {/* Step number */}
-                <div className="relative flex-shrink-0">
+                <div className="relative flex flex-col items-center flex-shrink-0">
                   <div
-                    className="font-heading w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg"
+                    className="font-heading w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg relative z-10 bg-[#050508]"
                     style={{ 
                       backgroundColor: `${step.color}20`,
                       color: step.color,
@@ -70,7 +70,7 @@ export function HowItWorks() {
                   {/* Connecting line */}
                   {index < steps.length - 1 && (
                     <div
-                      className="absolute top-12 left-1/2 -translate-x-1/2 w-0.5 h-16"
+                      className="absolute top-12 left-1/2 -translate-x-1/2 -bottom-6 w-0.5"
                       style={{ backgroundColor: `${step.color}40` }}
                     />
                   )}
@@ -78,11 +78,11 @@ export function HowItWorks() {
 
                 {/* Step content */}
                 <div
-                  className="flex-1 bg-[#12121A] border border-[#1A1A25] rounded-2xl p-6"
+                  className="flex-1 bg-[#12121A] border border-[#1A1A25] rounded-2xl p-6 relative group"
                   style={{ borderLeftColor: step.color, borderLeftWidth: "4px" }}
                 >
                   <div
-                    className="absolute -left-1 top-6 w-8 h-0.5 hidden sm:block"
+                    className="absolute -left-6 top-6 w-6 h-0.5 hidden sm:block"
                     style={{ backgroundColor: step.color }}
                   />
                   <h3 className="font-heading text-xl font-bold text-[#E4E4E7] mb-2">{step.title}</h3>
