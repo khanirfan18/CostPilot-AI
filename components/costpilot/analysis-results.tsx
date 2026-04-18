@@ -58,7 +58,7 @@ export function AnalysisResults({ result, addToast, currencySymbol }: AnalysisRe
     { name: "Interest", value: result.totalInterest, color: COLORS.amber },
     {
       name: "Fees",
-      value: result.hiddenCharges.reduce((sum, c) => sum + c.amount, 0),
+      value: result.charges.reduce((sum, c) => sum + (c.isVariable ? 0 : Number(c.amount)), 0),
       color: COLORS.red,
     },
   ]
@@ -87,10 +87,10 @@ Monthly EMI: ${formatCurrency(result.monthlyEMI, currencySymbol)}
 Total Payable: ${formatCurrency(result.totalPayable, currencySymbol)}
 Total Interest: ${formatCurrency(result.totalInterest, currencySymbol)}
 Effective APR: ${result.effectiveAPR}%
-Risk Level: ${result.riskLevel}
+Risk Level: ${result.riskScores.costRisk}
 
 Hidden Charges:
-${result.hiddenCharges.map((c) => `- ${c.name}: ${formatCurrency(c.amount, currencySymbol)}`).join("\n")}
+${result.charges.map((c) => `- ${c.name}: ${c.isVariable ? c.amount : formatCurrency(Number(c.amount), currencySymbol)}`).join("\n")}
 
 Summary:
 ${result.plainEnglish}
@@ -110,11 +110,11 @@ ${result.plainEnglish}
         <span
           className="font-heading px-4 py-2 rounded-full font-bold text-sm"
           style={{
-            backgroundColor: `${getRiskColor(result.riskLevel)}20`,
-            color: getRiskColor(result.riskLevel),
+            backgroundColor: `${getRiskColor(result.riskScores.costRisk)}20`,
+            color: getRiskColor(result.riskScores.costRisk),
           }}
         >
-          {result.riskLevel} RISK
+          {result.riskScores.costRisk} RISK
         </span>
       </div>
 
@@ -161,7 +161,7 @@ ${result.plainEnglish}
       {/* Hidden Charges */}
       <div className="bg-[#12121A] border border-[#1A1A25] rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-4">
-          {result.hiddenCharges.length > 0 ? (
+          {result.charges.length > 0 ? (
             <>
               <AlertTriangle className="w-5 h-5 text-[#EAB308]" />
               <h3 className="font-heading font-bold text-[#E4E4E7]">⚠️ Hidden Charges Detected</h3>
@@ -173,9 +173,9 @@ ${result.plainEnglish}
             </>
           )}
         </div>
-        {result.hiddenCharges.length > 0 ? (
+        {result.charges.length > 0 ? (
           <div className="space-y-3">
-            {result.hiddenCharges.map((charge, index) => (
+            {result.charges.map((charge, index) => (
               <div
                 key={index}
                 className="flex items-start justify-between py-2 border-b border-[#1A1A25] last:border-0"
@@ -184,7 +184,7 @@ ${result.plainEnglish}
                   <p className="text-[#E4E4E7] font-medium">{charge.name}</p>
                   <p className="text-xs text-[#71717A]">{charge.description}</p>
                 </div>
-                <span className="font-heading text-[#EAB308] font-bold tabular-nums">{charge.amount > 0 ? formatCurrency(charge.amount, currencySymbol) : "Variable"}
+                <span className="font-heading text-[#EAB308] font-bold tabular-nums">{!charge.isVariable ? formatCurrency(Number(charge.amount), currencySymbol) : charge.amount}
                 </span>
               </div>
             ))}
@@ -222,7 +222,7 @@ ${result.plainEnglish}
                   border: "1px solid #1A1A25",
                   borderRadius: "8px",
                 }}
-                formatter={(value: number) => {formatCurrency(value, currencySymbol)}}
+                formatter={(value: number, name: string): [string, string] => [formatCurrency(value, currencySymbol), name]}
               />
               <Legend
                 verticalAlign="bottom"
@@ -257,7 +257,7 @@ ${result.plainEnglish}
                   border: "1px solid #1A1A25",
                   borderRadius: "8px",
                 }}
-                formatter={(value: number) => {formatCurrency(value, currencySymbol)}}
+                formatter={(value: number, name: string): [string, string] => [formatCurrency(value, currencySymbol), name]}
               />
               <Bar dataKey="Principal" stackId="a" fill={COLORS.cyan} />
               <Bar dataKey="Interest" stackId="a" fill={COLORS.amber} />
@@ -295,7 +295,7 @@ ${result.plainEnglish}
                   border: "1px solid #1A1A25",
                   borderRadius: "8px",
                 }}
-                formatter={(value: number) => {formatCurrency(value, currencySymbol)}}
+                formatter={(value: number, name: string): [string, string] => [formatCurrency(value, currencySymbol), name]}
                 labelFormatter={(label) => `Month ${label}`}
               />
               <Area
@@ -316,9 +316,9 @@ ${result.plainEnglish}
         <h3 className="font-heading font-bold text-[#E4E4E7] mb-4">Risk Breakdown</h3>
         <div className="space-y-3">
           {[
-            { label: "Interest Structure", value: result.riskFactors.interestStructure },
-            { label: "Fee Transparency", value: result.riskFactors.feeTransparency },
-            { label: "Penalty Clauses", value: result.riskFactors.penaltyClauses },
+            { label: "Cost Risk", value: result.riskScores.costRisk },
+            { label: "Penalty Risk", value: result.riskScores.penaltyRisk },
+            { label: "Transparency Score", value: result.riskScores.transparencyScore },
           ].map((factor) => (
             <div
               key={factor.label}
@@ -362,7 +362,7 @@ ${result.plainEnglish}
         <div className="absolute inset-0 bg-gradient-to-r from-[#8B5CF6]/5 to-[#22D3EE]/5 opacity-10 group-hover:opacity-100 transition-opacity duration-500" />
         <div className="relative flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <div className="text-4xl shrink-0">
-            {result.riskLevel === "HIGH" ? "🚩" : result.riskLevel === "MEDIUM" ? "😬" : "💅"}
+            {result.riskScores.costRisk === "HIGH" ? "🚩" : result.riskScores.costRisk === "MEDIUM" ? "😬" : "💅"}
           </div>
           <div>
             <h4 className="font-heading text-xs text-[#8B5CF6] uppercase tracking-widest font-bold mb-1.5 flex items-center gap-2">
@@ -370,9 +370,9 @@ ${result.plainEnglish}
               Real Talk Verdict
             </h4>
             <p className="text-[#E4E4E7] text-sm leading-relaxed font-medium">
-              {result.riskLevel === "HIGH" 
+              {result.riskScores.costRisk === "HIGH" 
                 ? "Big yikes bestie. They are straight up trying to finesse you with these terms. Ghost them no cap, and find a better option rn."
-                : result.riskLevel === "MEDIUM"
+                : result.riskScores.costRisk === "MEDIUM"
                 ? "It's giving mid vibes ngl. It's not a complete scam, but u could probably do better if u shopped around. Don't settle too quick."
                 : "Huge W. This deal is actually solid no cap. It passes the vibe check — secure it and go touch grass."}
             </p>
