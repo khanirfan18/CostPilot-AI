@@ -33,7 +33,8 @@ const COLORS = {
   purple: "#8B5CF6",
 }
 
-function formatCurrency(amount: number, symbol: string): string {
+function formatCurrency(amount: number | string, symbol: string): string {
+  if (typeof amount === 'string') return amount;
   // Automatically switch formatting logic depending on standard standard formats
   if (symbol === "₹") {
     return `${symbol}${amount.toLocaleString("en-IN")}`
@@ -54,11 +55,11 @@ function getRiskColor(level: "LOW" | "MEDIUM" | "HIGH"): string {
 
 export function AnalysisResults({ result, addToast, currencySymbol }: AnalysisResultsProps) {
   const costDistributionData = [
-    { name: "Principal", value: result.loanAmount, color: COLORS.cyan },
-    { name: "Interest", value: result.totalInterest, color: COLORS.amber },
+    { name: "Principal", value: typeof result.loanAmount === 'number' ? result.loanAmount : 0, color: COLORS.cyan },
+    { name: "Interest", value: typeof result.totalInterest === 'number' ? result.totalInterest : 0, color: COLORS.amber },
     {
       name: "Fees",
-      value: result.charges.reduce((sum, c) => sum + (c.isVariable ? 0 : Number(c.amount)), 0),
+      value: result.charges.reduce((sum, c) => sum + (c.isVariable || isNaN(Number(c.amount)) ? 0 : Number(c.amount)), 0),
       color: COLORS.red,
     },
   ]
@@ -86,7 +87,7 @@ export function AnalysisResults({ result, addToast, currencySymbol }: AnalysisRe
 Monthly EMI: ${formatCurrency(result.monthlyEMI, currencySymbol)}
 Total Payable: ${formatCurrency(result.totalPayable, currencySymbol)}
 Total Interest: ${formatCurrency(result.totalInterest, currencySymbol)}
-Effective APR: ${result.effectiveAPR}%
+Effective APR: ${result.effectiveAPR}${typeof result.effectiveAPR === 'number' ? '%' : ''}
 Risk Level: ${result.riskScores.costRisk}
 
 Hidden Charges:
@@ -141,7 +142,7 @@ ${result.plainEnglish}
         <div className="bg-[#1A1A25] border border-[#1A1A25] rounded-xl p-4">
           <p className="text-xs text-[#71717A] uppercase mb-1">Effective APR</p>
           <p className="font-heading text-2xl font-black text-[#EF4444]">
-            {result.effectiveAPR}%
+            {result.effectiveAPR}{typeof result.effectiveAPR === 'number' ? '%' : ''}
           </p>
           <p className="text-xs text-[#71717A]">true annual rate</p>
         </div>

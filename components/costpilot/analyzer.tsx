@@ -36,15 +36,15 @@ interface AmortizationEntry {
 
 export interface AnalysisResult {
   plainEnglish: string
-  loanAmount: number
-  actualReceived: number
-  amountInterestChargedOn: number
-  interestRate: number
-  tenure: number
-  monthlyEMI: number
-  totalPayable: number
-  totalInterest: number
-  effectiveAPR: number
+  loanAmount: number | string
+  actualReceived: number | string
+  amountInterestChargedOn: number | string
+  interestRate: number | string
+  tenure: number | string
+  monthlyEMI: number | string
+  totalPayable: number | string
+  totalInterest: number | string
+  effectiveAPR: number | string
   charges: Charge[]
   financialTraps: string[]
   riskScores: RiskScores
@@ -158,34 +158,38 @@ CRITICAL INPUT VALIDATION RULE:
 If the text provided is completely random, nonsensical, or clearly NOT a financial agreement (no mention of any money formatting or loan details), return EXACTLY:
 {"error": "INVALID"}
 
-If the text looks somewhat like a financial agreement (mentions money or loans) but is missing essential details like the Principal/Loan Amount, Interest Rate, or Tenure, return EXACTLY:
-{"error": "PARTIAL", "missingFields": ["list", "of", "missing", "key details"]}
 
-Only if the agreement is reasonably complete should you proceed with the calculation.
 
 Analyze the agreement below and return ONLY valid raw JSON — no markdown, no backticks, no explanation whatsoever. Return EXACTLY this structure, making sure to calculate true costs, actual cash flow, and effective APR realistically.
 
-RULES FOR CALCULATION:
-1. loanAmount is the stated principal.
-2. actualReceived = loanAmount - SUM(UPFRONT charges).
-3. amountInterestChargedOn = loanAmount + SUM(FINANCED charges).
-4. Re-calculate monthlyEMI based on 'amountInterestChargedOn', NOT 'loanAmount'.
-5. totalPayable = (monthlyEMI * tenure) + SUM(UPFRONT charges).
-6. effectiveAPR is the IRR of actual cash flows (actualReceived as negative month 0, and monthlyEMI as positive cash flows).
-7. For CONDITIONAL/VARIABLE charges (e.g., late fees, prepayments), DO NOT put $0. Put the percentage or flat fee as a string like "4%" or "750" in the amount field, and set isVariable to true.
+RULES FOR CALCULATION & PARSING:
+1. FLEXIBLE PARSING: Handle messy, unstructured text. Extract loan details even if loosely worded (e.g. "I think 10%", "around 50k", "used/withdrawn/limit" for credit lines).
+2. loanAmount is the stated principal or utilized credit line.
+3. actualReceived = loanAmount - SUM(UPFRONT charges).
+4. amountInterestChargedOn = loanAmount + SUM(FINANCED charges).
+5. Re-calculate monthlyEMI based on 'amountInterestChargedOn', NOT 'loanAmount'.
+6. totalPayable = (monthlyEMI * tenure) + SUM(UPFRONT charges).
+7. effectiveAPR is the IRR of actual cash flows (actualReceived as negative month 0, and monthlyEMI as positive cash flows).
+8. For CONDITIONAL/VARIABLE charges (e.g., late fees, prepayments, subscriptions, processing, documentation), DO NOT put $0. Put the percentage or flat fee as a string like "4%" or "750" in the amount field, and set isVariable to true. Look aggressively for ANY fees.
+9. ZERO-INTEREST CHECK: If the input explicitly mentions "0%" or "no-cost EMI", you must NOT assume it is genuinely free. Check thoroughly for processing fees, platform fees, or convenience charges. Treat these fees as the effective interest to calculate realistic effectiveAPR and add this exact insight into financialTraps: "Although interest is 0%, fees increase the actual cost."
+10. UNCERTAINTY & SAFE FALLBACK: If values are vague or approximations (e.g. "~14-15%"), estimate realistically and reflect this in 'plainEnglish' (e.g. "~14-15% estimated interest"). 
+11. MISSING INFO FALLBACK: If the text is fundamentally a loan/financial product but completely lacks precise numbers to calculate an amortization schedule, do NOT return an error. Switch to "insight mode": return strings like "Not applicable", "Variable", or "Estimated range" for the missing strictly-numeric fields (loanAmount, interestRate, monthlyEMI, expectedAPR, etc.), and provide structural insights in 'plainEnglish' and 'financialTraps'.
+
+STRUCTURE DETECTION:
+Implicitly detect standard loans, credit lines, and hybrid products. Address this in the 'plainEnglish' context if it impacts repayment (e.g. "This appears to be a revolving credit line...").
 
 JSON STRUCTURE:
 {
-  "plainEnglish": "string — clear, blunt summary of the real costs",
-  "loanAmount": number,
-  "actualReceived": number,
-  "amountInterestChargedOn": number,
-  "interestRate": number,
-  "tenure": number,
-  "monthlyEMI": number,
-  "totalPayable": number,
-  "totalInterest": number,
-  "effectiveAPR": number,
+  "plainEnglish": "string — clear, blunt summary of the real costs, including detection of standard loan, credit line, or hybrid product",
+  "loanAmount": number | string,
+  "actualReceived": number | string,
+  "amountInterestChargedOn": number | string,
+  "interestRate": number | string,
+  "tenure": number | string,
+  "monthlyEMI": number | string,
+  "totalPayable": number | string,
+  "totalInterest": number | string,
+  "effectiveAPR": number | string,
   "charges": [
     { 
       "name": "string",
@@ -195,15 +199,15 @@ JSON STRUCTURE:
       "description": "string"
     }
   ],
-  "financialTraps": ["string — precise trap name/description (e.g., 'Prepayment lock-in: 5% penalty', 'Upfront deduction trap', 'Inflated principal')"],
+  "financialTraps": ["string — precise trap name/description"],
   "riskScores": {
     "costRisk": "LOW" | "MEDIUM" | "HIGH",
     "penaltyRisk": "LOW" | "MEDIUM" | "HIGH",
     "transparencyScore": "LOW" | "MEDIUM" | "HIGH"
   },
   "verdict": {
-    "category": "FAIR" | "COSTLY" | "RISKY" | "PREDATORY",
-    "reasoning": "string — detailed 3-5 sentence explanation of WHY this category was chosen in a blunt, direct tone. Explicitly mention cash flow mismatches or traps."
+    "category": "COMPLEX" | "FAIR" | "COSTLY" | "RISKY" | "PREDATORY",
+    "reasoning": "string — detailed 3-5 sentence explanation of WHY this category was chosen in a blunt, direct tone."
   },
   "amortization": [{ "month": number, "emi": number, "principal": number, "interest": number, "balance": number }]
 }
@@ -360,7 +364,16 @@ export function Analyzer() {
 
 
 
-  const callOpenRouter = async (text: string, key: string): Promise<AnalysisResult> => {
+  const callOpenRouter = async (text: string, key: string, isUserKey: boolean = false): Promise<AnalysisResult> => {
+    // For demo/free usage, we use the free model. For user keys, they can also use the free model to avoid costs,
+    // or we could use a paid one. Since the UI says "Free models", let's use the reliable free gemma model
+    // and provide OpenRouter with fallback models using the "models" array in case the first is rate-limited (429).
+    const modelsList = [
+      "google/gemma-3-27b-it:free",
+      "google/gemma-3-12b-it:free",
+      "meta-llama/llama-3.2-3b-instruct:free"
+    ];
+    
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -369,11 +382,12 @@ export function Analyzer() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.1-8b-instruct:free",
+        models: modelsList,
         messages: [{ role: "user", content: AI_PROMPT + text }]
       })
     })
     
+    if (response.status === 429) throw new Error("OPENROUTER_429");
     if (!response.ok) throw new Error("OpenRouter failed")
     const data = await response.json()
     const content = data.choices[0].message.content
@@ -389,6 +403,7 @@ export function Analyzer() {
       })
     })
     
+    if (response.status === 429) throw new Error("GEMINI_429");
     if (!response.ok) throw new Error("Gemini failed")
     const data = await response.json()
     const content = data.candidates[0].content.parts[0].text
@@ -408,6 +423,7 @@ export function Analyzer() {
       })
     })
     
+    if (response.status === 429) throw new Error("OPENAI_429");
     if (!response.ok) throw new Error("OpenAI failed")
     const data = await response.json()
     const content = data.choices[0].message.content
@@ -476,18 +492,29 @@ export function Analyzer() {
         const devGemini = process.env.NEXT_PUBLIC_GEMINI_KEY || ""
         
         if (devOpenRouter || devGemini) {
-          try {
-            if (devOpenRouter) {
-              analysisResult = await callOpenRouter(agreementText, devOpenRouter)
-            } else {
-              analysisResult = await callGemini(agreementText, devGemini)
+          let demoSuccess = false;
+          const devApiConfigs = [
+            { key: devOpenRouter, call: () => callOpenRouter(agreementText, devOpenRouter, false) },
+            { key: devGemini, call: () => callGemini(agreementText, devGemini) }
+          ];
+
+          for (const api of devApiConfigs) {
+            if (!api.key) continue;
+            try {
+              analysisResult = await api.call();
+              demoSuccess = true;
+              break;
+            } catch (e: any) {
+              console.error("Demo API failed:", e);
             }
-            
+          }
+
+          if (demoSuccess) {
             const newTries = freeTries - 1
             setFreeTries(newTries)
             localStorage.setItem("costpilot_free_tries", newTries.toString())
             addToast(`Accurate Analysis Used (${newTries} free tries left). Provide your API key for unlimited access!`, "success")
-          } catch (e) {
+          } else {
             await new Promise(resolve => setTimeout(resolve, 1500))
             analysisResult = { ...fallbackData }
             addToast(fallbackToast, "info")
@@ -503,39 +530,43 @@ export function Analyzer() {
         addToast("Out of free tries! Fast demo used. Add your API key for super accurate results!", "info")
       }
     } else {
-          try {
-            if (activeOpenRouter) {
-              analysisResult = await callOpenRouter(agreementText, activeOpenRouter)
-              addToast("Analysis complete!", "success")
-            } else if (activeGemini) {
-              analysisResult = await callGemini(agreementText, activeGemini)
-              addToast("Analysis complete!", "success")
-            } else if (activeOpenAI) {
-              analysisResult = await callOpenAI(agreementText, activeOpenAI)
-              addToast("Analysis complete!", "success")
-            } else {
-              throw new Error("No API keys")
-            }
-          } catch {
-            // Try fallback
-            try {
-              if (activeGemini && !activeOpenRouter) {
-                analysisResult = await callGemini(agreementText, activeGemini)
-                addToast("Analysis complete!", "success")
-              } else if (activeOpenAI) {
-                analysisResult = await callOpenAI(agreementText, activeOpenAI)
-                addToast("Analysis complete!", "success")
-              } else {
-                throw new Error("All APIs failed")
-              }
-            } catch {
-              // Final fallback to static demo data
-              await new Promise(resolve => setTimeout(resolve, 500))
-              analysisResult = { ...fallbackData }
-              addToast("AI failed, Using Static Demo Data", "info")
-            }
-          }
+      let success = false;
+      let lastError: any = null;
+      const apiConfigs = [
+        { name: "OpenRouter", key: activeOpenRouter, call: () => callOpenRouter(agreementText, activeOpenRouter, true) },
+        { name: "Gemini", key: activeGemini, call: () => callGemini(agreementText, activeGemini) },
+        { name: "OpenAI", key: activeOpenAI, call: () => callOpenAI(agreementText, activeOpenAI) }
+      ];
+
+      console.log(`Starting user API fallback sequence. Keys provided: OR=${!!activeOpenRouter}, Gemini=${!!activeGemini}, OpenAI=${!!activeOpenAI}`);
+
+      for (const api of apiConfigs) {
+        if (!api.key) continue;
+        
+        try {
+          console.log(`Trying ${api.name} API...`);
+          analysisResult = await api.call();
+          addToast(`${api.name} Analysis complete!`, "success");
+          success = true;
+          break; // Stop trying if one succeeds
+        } catch (e: any) {
+          console.error(`${api.name} API failed:`, e);
+          lastError = e;
+          // If it fails, loop continues and tries the next available key
         }
+      }
+
+      if (!success) {
+        setResult(null);
+        setIsAnalyzing(false);
+        if (lastError?.message?.includes("429")) {
+          addToast(`API limit reached (Too many requests on ${lastError.message.includes('GEMINI') ? 'Gemini' : 'OpenRouter'}). Please wait a bit.`, "error");
+        } else {
+          addToast("User API failed: All provided API keys were rejected or failed.", "error");
+        }
+        return;
+      }
+    }
       }
 
       if (activeTab === "ai" && analysisResult) {
@@ -553,8 +584,12 @@ export function Analyzer() {
     }
 
     setResult(analysisResult)
-    } catch {
-      addToast("Analysis failed", "error")
+    } catch (e: any) {
+      if (e.message?.includes("429")) {
+        addToast("API limit reached (Too many requests). Please try again in a minute.", "error")
+      } else {
+        addToast("Analysis failed", "error")
+      }
     } finally {
       setIsAnalyzing(false)
     }
@@ -882,7 +917,7 @@ export function Analyzer() {
                     <div className="flex items-center gap-2">
                       <span className="text-[#8B5CF6]">✦</span>
                       <span className="font-heading font-bold text-[#E4E4E7]">Google Gemini</span>
-                      <span className="text-xs text-[#71717A] ml-2">Free tier · gemini-1.5-flash</span>
+                      <span className="text-xs text-[#71717A] ml-2">Free tier · gemini-2.5-flash</span>
                     </div>
                     <a
                       href="https://aistudio.google.com/app/apikey"
@@ -916,7 +951,7 @@ export function Analyzer() {
                     <div className="flex items-center gap-2">
                       <span className="text-[#a855f7]">⇌</span>
                       <span className="font-heading font-bold text-[#E4E4E7]">OpenRouter</span>
-                      <span className="text-xs text-[#71717A] ml-2">Free models · llama-3.1-8b</span>
+                      <span className="text-xs text-[#71717A] ml-2">Free models · gemma-3-27b</span>
                     </div>
                     <a
                       href="https://openrouter.ai/keys"
