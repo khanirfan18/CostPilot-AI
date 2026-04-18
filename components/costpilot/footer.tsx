@@ -1,6 +1,7 @@
 "use client"
 
 import { Search, Github } from "lucide-react"
+import Link from "next/link"
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -66,15 +67,26 @@ export function Footer() {
         </div>
 
         {/* Disclaimer */}
-        <div className="border-t border-[#1A1A25] pt-8 mb-8">
-          <h5 className="font-heading text-xs text-[#71717A] uppercase tracking-widest font-bold mb-2">
-            DISCLAIMER
-          </h5>
-          <p className="text-xs text-[#71717A] max-w-3xl">
-            CostPilot AI provides factual financial analysis for informational purposes only. 
-            No content constitutes financial advice. Always verify figures with your lender 
-            or a qualified financial advisor.
-          </p>
+        <div className="border-t border-[#1A1A25] pt-8 mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <h5 className="font-heading text-xs text-[#71717A] uppercase tracking-widest font-bold mb-2">
+              DISCLAIMER
+            </h5>
+            <p className="text-xs text-[#71717A] max-w-3xl">
+              CostPilot AI provides factual financial analysis for informational purposes only. 
+              No content constitutes financial advice. Always verify figures with your lender 
+              or a qualified financial advisor.
+            </p>
+          </div>
+          
+          <Link 
+            href="/about"
+            className="group relative px-6 py-2 shrink-0 rounded-lg font-black text-lg tracking-[0.1em] transform transition-all duration-300 hover:-translate-y-1 active:translate-y-0.5 bg-[#EE2D24] hover:bg-[#D11810] border-[3px] border-[#FAE021] text-white hover:shadow-[0_8px_15px_rgba(238,45,36,0.3)] shadow-[0_4px_10px_rgba(238,45,36,0.15)] flex items-center justify-center"
+          >
+            <span className="relative z-20 font-heading uppercase" style={{textShadow: "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000"}}>
+              ABOUT
+            </span>
+          </Link>
         </div>
 
         {/* Bottom bar */}
