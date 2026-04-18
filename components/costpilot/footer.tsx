@@ -98,7 +98,7 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-4 text-xs text-[#71717A]">
             <a
-              href="https://github.com"
+              href="https://github.com/khanirfan18/CostPilot-AI"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 hover:text-[#E4E4E7] transition-colors"
