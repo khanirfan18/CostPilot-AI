@@ -22,7 +22,7 @@ export interface RiskScores {
 }
 
 export interface Verdict {
-  category: "FAIR" | "COSTLY" | "RISKY" | "PREDATORY"
+  category: "FAIR" | "COSTLY" | "RISKY" | "PREDATORY" | "COMPLEX"
   reasoning: string
 }
 
@@ -50,6 +50,8 @@ export interface AnalysisResult {
   riskScores: RiskScores
   verdict: Verdict
   amortization: AmortizationEntry[]
+  isComplexFallback?: boolean
+  productType?: string
 }
 
 
@@ -93,6 +95,37 @@ const DEMO_DATA: AnalysisResult = {
     reasoning: "This loan utilizes classic predatory mechanics to disguise its true expense. Upfront deductions severely lower your actual cash-in-hand while financed insurance artificially inflates the interest-bearing principal. Combined with a harsh 4% prepayment trap, this agreement locks you into paying an effective rate of over 21% rather than the advertised 16%."
   },
   amortization: generateAmortization(251200, 16, 24)
+}
+
+function checkComplexInput(text: string): boolean {
+  const t = text.toLowerCase()
+  return ["credit limit", "withdrawal", "minimum due", "subscription", "dynamic interest", "hybrid emi", "conversion", "credit line", "credit card", "revolving"].some(keyword => t.includes(keyword))
+}
+
+const COMPLEX_FALLBACK_DATA: AnalysisResult = {
+  plainEnglish: "This is a complex financial product (credit line / hybrid structure). Demo mode provides limited analysis. Please use your API key for full insights.",
+  loanAmount: 0,
+  actualReceived: 0,
+  amountInterestChargedOn: 0,
+  interestRate: 0,
+  tenure: 0,
+  monthlyEMI: 0,
+  totalPayable: 0,
+  totalInterest: 0,
+  effectiveAPR: 0,
+  charges: [],
+  financialTraps: [
+    "Dynamic Interest: Interest dynamically changes based on usage limits or revolving credit logic.",
+    "Complex Math Required: Fixed EMI calculation disabled to prioritize honesty over fake precision. Please use a valid API key for amortized structure analysis."
+  ],
+  riskScores: { costRisk: "MEDIUM", penaltyRisk: "MEDIUM", transparencyScore: "LOW" },
+  verdict: {
+    category: "COMPLEX",
+    reasoning: "The system detected complex revolving credit logic (minimum due, hybrid structures). Standard static calculation is disabled to prevent misleading numbers."
+  },
+  amortization: [],
+  isComplexFallback: true,
+  productType: "Complex / Revolving Credit"
 }
 
 function generateAmortization(principal: number, annualRate: number, months: number): AmortizationEntry[] {
@@ -213,7 +246,7 @@ function AnalyzerLoading() {
   }, []);
 
   return (
-    <div className="w-full bg-[#12121A] border border-[#1A1A25] rounded-2xl p-8 mt-8 flex flex-col items-center justify-center animate-in fade-in fade-out duration-500 min-h-[350px]">
+    <div className="w-full bg-[#12121A] border border-[#1A1A25] rounded-2xl p-4 sm:p-8 mt-5 sm:mt-8 flex flex-col items-center justify-center animate-in fade-in fade-out duration-500 min-h-[200px] sm:min-h-[300px] sm:min-h-[350px]">
       <div className="relative mb-6 w-16 h-16 flex items-center justify-center">
         <div className="text-5xl animate-bounce absolute">💸</div>
         <div className="text-3xl animate-pulse absolute -right-4 -bottom-2">🧠</div>
@@ -430,6 +463,13 @@ export function Analyzer() {
         
         const hasKeys = activeOpenRouter || activeGemini || activeOpenAI
         
+        const isComplex = checkComplexInput(agreementText)
+        console.log("MODE:", hasKeys ? "api" : "demo")
+        console.log("PARSER RESULT:", isComplex ? "complex" : "standard")
+
+        const fallbackData = isComplex ? COMPLEX_FALLBACK_DATA : DEMO_DATA
+        const fallbackToast = isComplex ? "Complex product detected. Provide API key for proper analysis." : "Demo is fast but for super accurate results, use your own API key!"
+
         if (!hasKeys) {
       if (freeTries > 0) {
         const devOpenRouter = process.env.NEXT_PUBLIC_OPENROUTER_KEY || ""
@@ -449,17 +489,17 @@ export function Analyzer() {
             addToast(`Accurate Analysis Used (${newTries} free tries left). Provide your API key for unlimited access!`, "success")
           } catch (e) {
             await new Promise(resolve => setTimeout(resolve, 1500))
-            analysisResult = { ...DEMO_DATA }
-            addToast("Demo is fast but for super accurate results, use your own API key!", "info")
+            analysisResult = { ...fallbackData }
+            addToast(fallbackToast, "info")
           }
         } else {
           await new Promise(resolve => setTimeout(resolve, 1500))
-          analysisResult = { ...DEMO_DATA }
-          addToast("Demo is fast but for super accurate results, use your own API key!", "info")
+          analysisResult = { ...fallbackData }
+          addToast(fallbackToast, "info")
         }
       } else {
         await new Promise(resolve => setTimeout(resolve, 1500))
-        analysisResult = { ...DEMO_DATA }
+        analysisResult = { ...fallbackData }
         addToast("Out of free tries! Fast demo used. Add your API key for super accurate results!", "info")
       }
     } else {
@@ -491,7 +531,7 @@ export function Analyzer() {
             } catch {
               // Final fallback to static demo data
               await new Promise(resolve => setTimeout(resolve, 500))
-              analysisResult = { ...DEMO_DATA }
+              analysisResult = { ...fallbackData }
               addToast("AI failed, Using Static Demo Data", "info")
             }
           }
@@ -644,7 +684,7 @@ export function Analyzer() {
     <section
       id="analyzer"
       ref={ref}
-      className={`py-24 px-4 fade-in-section ${isVisible ? "visible" : ""}`}
+      className={`py-16 sm:py-24 px-4 sm:px-6 fade-in-section ${isVisible ? "visible" : ""}`}
     >
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       
@@ -661,7 +701,7 @@ export function Analyzer() {
         </div>
 
         {/* Tab Switcher and Currency Selector */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="bg-[#12121A] rounded-2xl p-1 flex flex-1">
             <button
               onClick={() => setActiveTab("ai")}
@@ -719,7 +759,7 @@ export function Analyzer() {
 
         {/* AI Analysis Tab */}
         {activeTab === "ai" && (
-          <div className="bg-[#12121A] border border-[#1A1A25] rounded-2xl p-6 mb-6">
+          <div className="bg-[#12121A] border border-[#1A1A25] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-heading font-bold text-[#E4E4E7] flex items-center gap-2">
                 🔍 AI Financial Analyzer
@@ -740,7 +780,7 @@ export function Analyzer() {
               value={agreementText}
               onChange={(e) => { setAgreementText(e.target.value); if (result) setResult(null); }}
               placeholder={EXAMPLE_TEXT}
-              className="w-full min-h-[300px] bg-[#0A0A12] border border-[#27272A] rounded-xl p-4 text-[#d1d5db] font-mono text-sm focus:border-[#8B5CF6] focus:outline-none resize-y transition-colors placeholder:whitespace-pre-line placeholder:text-[#52525B]"
+              className="w-full min-h-[200px] sm:min-h-[300px] bg-[#0A0A12] border border-[#27272A] rounded-xl p-4 text-[#d1d5db] font-mono text-sm focus:border-[#8B5CF6] focus:outline-none resize-y transition-colors placeholder:whitespace-pre-line placeholder:text-[#52525B]"
             />
             <div className="flex items-center justify-between mt-2 text-xs text-[#71717A]">
               <span>Supports any format</span>
@@ -751,7 +791,7 @@ export function Analyzer() {
 
         {/* Manual Entry Tab */}
         {activeTab === "manual" && (
-          <div className="bg-[#12121A] border border-[#1A1A25] rounded-2xl p-6 mb-6">
+          <div className="bg-[#12121A] border border-[#1A1A25] rounded-2xl p-4 sm:p-6 mb-4 sm:mb-6">
             <div className="grid sm:grid-cols-2 gap-4">
               {[
                 { key: "principal", label: "PRINCIPAL AMOUNT", prefix: currency, helper: "Total loan amount" },
@@ -830,14 +870,14 @@ export function Analyzer() {
           </div>
 
           {isApiKeysOpen && (
-            <div className="p-6 border-t border-[#1A1A25]">
+            <div className="p-4 sm:p-6 border-t border-[#1A1A25]">
               <p className="text-sm text-[#71717A] mb-6">
                 Add keys For real AI analysis. Priority: Google Gemini → OpenRouter → OpenAI. If none are provided, Demo Mode activates automatically — no crash, no error.
               </p>
 
               <div className="space-y-4">
                 {/* Gemini */}
-                <div className="border border-[#1A1A25] rounded-xl p-4 bg-[#0A0A12]">
+                <div className="border border-[#1A1A25] rounded-xl p-3 sm:p-4 bg-[#0A0A12]">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-[#8B5CF6]">✦</span>
@@ -871,7 +911,7 @@ export function Analyzer() {
                 </div>
 
                 {/* OpenRouter */}
-                <div className="border border-[#1A1A25] rounded-xl p-4 bg-[#0A0A12]">
+                <div className="border border-[#1A1A25] rounded-xl p-3 sm:p-4 bg-[#0A0A12]">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-[#a855f7]">⇌</span>
@@ -905,7 +945,7 @@ export function Analyzer() {
                 </div>
 
                 {/* OpenAI */}
-                <div className="border border-[#1A1A25] rounded-xl p-4 bg-[#0A0A12]">
+                <div className="border border-[#1A1A25] rounded-xl p-3 sm:p-4 bg-[#0A0A12]">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-[#22C55E]">○</span>

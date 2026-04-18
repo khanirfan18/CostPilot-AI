@@ -81,9 +81,11 @@ export function Footer() {
           
           <Link 
             href="/about"
-            className="group relative px-6 py-2 shrink-0 rounded-lg font-black text-lg tracking-[0.1em] transform transition-all duration-300 hover:-translate-y-1 active:translate-y-0.5 bg-[#EE2D24] hover:bg-[#D11810] border-[3px] border-[#FAE021] text-white hover:shadow-[0_8px_15px_rgba(238,45,36,0.3)] shadow-[0_4px_10px_rgba(238,45,36,0.15)] flex items-center justify-center"
+            className="group relative px-8 py-3 shrink-0 rounded-xl font-heading font-bold text-lg tracking-[0.1em] transform transition-all duration-300 hover:-translate-y-1 active:translate-y-0.5 bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] border border-[#A78BFA]/50 text-white flex items-center justify-center"
           >
-            <span className="relative z-20 font-heading uppercase" style={{textShadow: "1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000"}}>
+            {/* Glowing Pulse Underlay */}
+            <span className="absolute -inset-1 rounded-xl bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] blur opacity-40 group-hover:opacity-75 transition duration-500 animate-pulse"></span>
+            <span className="relative z-20 uppercase">
               ABOUT
             </span>
           </Link>
@@ -104,8 +106,6 @@ export function Footer() {
               <Github className="w-4 h-4" />
               GitHub
             </a>
-            <span>·</span>
-            <span>Made with ♥ for hackathons</span>
           </div>
         </div>
       </div>

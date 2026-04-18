@@ -29,6 +29,13 @@ export const metadata: Metadata = {
   description: 'Paste any loan, credit card, or BNPL agreement. CostPilot AI extracts every term, calculates your real total cost, and flags every hidden charge — in seconds.',
   keywords: ['financial audit', 'loan calculator', 'hidden charges', 'fintech'],
   authors: [{ name: 'CostPilot AI' }],
+  openGraph: {
+    images: ['/linkLogo0.png']
+  },
+  twitter: {
+    card: 'summary_large_image',
+    images: ['/linkLogo0.png']
+  }
 }
 
 export const viewport: Viewport = {

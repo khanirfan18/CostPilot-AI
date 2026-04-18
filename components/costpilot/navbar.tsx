@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Menu, X, Search } from "lucide-react"
+import Image from "next/image"
+import { Menu, X } from "lucide-react"
 
 const navLinks = [
   { label: "Home", href: "#home" },
@@ -25,20 +26,20 @@ export function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 h-24 transition-all duration-300 ${
         scrolled ? "bg-[#050508]/80 backdrop-blur-md" : "bg-[#050508]/95"
       } border-b border-[#1A1A25]`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
         <div className="flex items-center justify-between h-full">
           {/* Logo */}
-          <a href="#home" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#8B5CF6] flex items-center justify-center">
-              <Search className="w-5 h-5 text-[#E4E4E7]" />
+          <a href="#home" className="flex items-center">
+            <div className="w-20 h-20 rounded-lg flex items-center justify-center -ml-2">
+              <Image src="/uiLogo.png" alt="CostPilot AI Logo" width={96} height={96} className="object-contain" priority />
             </div>
-            <div className="flex flex-col">
-              <span className="font-heading font-bold text-[#E4E4E7] text-lg leading-tight">CostPilot AI</span>
-              <span className="text-[10px] text-[#71717A] uppercase tracking-wider">AI Audit Engine</span>
+            <div className="flex flex-col -ml-3">
+              <span className="font-heading font-bold text-[#E4E4E7] text-2xl leading-tight">CostPilot AI</span>
+              <span className="text-xs text-[#71717A] uppercase tracking-wider">AI Audit Engine</span>
             </div>
           </a>
 
@@ -74,7 +75,7 @@ export function Navbar() {
 
       {/* Mobile Navigation */}
       <div
-        className={`md:hidden absolute top-16 left-0 right-0 bg-[#050508] border-b border-[#1A1A25] transition-all duration-300 ${
+        className={`md:hidden absolute top-24 left-0 right-0 bg-[#050508] border-b border-[#1A1A25] transition-all duration-300 ${
           isOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
       >
