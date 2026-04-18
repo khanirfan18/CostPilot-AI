@@ -437,7 +437,7 @@ export function Analyzer() {
           </span>
           <h2 className="font-heading mt-4 text-3xl sm:text-4xl font-black">
             <span className="text-[#E4E4E7]">Try </span>
-            <span className="text-[#8B5CF6]">ClarityLens</span>
+            <span className="text-[#8B5CF6]">CostPilot AI</span>
           </h2>
         </div>
 

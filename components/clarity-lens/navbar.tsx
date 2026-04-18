@@ -37,7 +37,7 @@ export function Navbar() {
               <Search className="w-5 h-5 text-[#E4E4E7]" />
             </div>
             <div className="flex flex-col">
-              <span className="font-heading font-bold text-[#E4E4E7] text-lg leading-tight">ClarityLens</span>
+              <span className="font-heading font-bold text-[#E4E4E7] text-lg leading-tight">CostPilot AI</span>
               <span className="text-[10px] text-[#71717A] uppercase tracking-wider">AI Audit Engine</span>
             </div>
           </a>

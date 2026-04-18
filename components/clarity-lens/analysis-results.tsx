@@ -81,7 +81,7 @@ export function AnalysisResults({ result, addToast, currencySymbol }: AnalysisRe
   }
 
   const handleCopyResults = () => {
-    const text = `ClarityLens Audit Report
+    const text = `CostPilot AI Audit Report
 ========================
 Monthly EMI: ${formatCurrency(result.monthlyEMI, currencySymbol)}
 Total Payable: ${formatCurrency(result.totalPayable, currencySymbol)}

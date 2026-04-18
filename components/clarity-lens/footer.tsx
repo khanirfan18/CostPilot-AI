@@ -25,7 +25,7 @@ export function Footer() {
                 <Search className="w-5 h-5 text-[#E4E4E7]" />
               </div>
               <div>
-                <span className="font-heading font-bold text-[#E4E4E7] text-xl">ClarityLens</span>
+                <span className="font-heading font-bold text-[#E4E4E7] text-xl">CostPilot AI</span>
                 <div className="text-[10px] text-[#71717A] uppercase tracking-wider">
                   AI FINANCIAL AUDIT ENGINE
                 </div>
@@ -71,7 +71,7 @@ export function Footer() {
             DISCLAIMER
           </h5>
           <p className="text-xs text-[#71717A] max-w-3xl">
-            ClarityLens provides factual financial analysis for informational purposes only. 
+            CostPilot AI provides factual financial analysis for informational purposes only. 
             No content constitutes financial advice. Always verify figures with your lender 
             or a qualified financial advisor.
           </p>
@@ -80,7 +80,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-[#1A1A25] pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-[#71717A]">
-            © 2026 ClarityLens — Built for financial transparency.
+            © 2026 CostPilot AI — Built for financial transparency.
           </p>
           <div className="flex items-center gap-4 text-xs text-[#71717A]">
             <a

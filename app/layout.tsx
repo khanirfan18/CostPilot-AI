@@ -25,10 +25,10 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ClarityLens — AI Financial Audit Engine',
-  description: 'Paste any loan, credit card, or BNPL agreement. ClarityLens extracts every term, calculates your real total cost, and flags every hidden charge — in seconds.',
+  title: 'CostPilot AI — Financial Audit Engine',
+  description: 'Paste any loan, credit card, or BNPL agreement. CostPilot AI extracts every term, calculates your real total cost, and flags every hidden charge — in seconds.',
   keywords: ['financial audit', 'loan calculator', 'hidden charges', 'fintech'],
-  authors: [{ name: 'ClarityLens' }],
+  authors: [{ name: 'CostPilot AI' }],
 }
 
 export const viewport: Viewport = {
