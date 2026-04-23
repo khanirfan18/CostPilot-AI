@@ -1,6 +1,9 @@
-# CostPilot AI
+# CostPilot AI 
 
 CostPilot AI is an intelligent financial agreement analyzer designed to uncover hidden fees, true costs, and effective APRs from complex loan documents and credit agreements. Built for transparency, it empowers users to truly understand what they are signing up for.
+
+
+## DEVPOST : https://devpost.com/software/costpilot-ai 
 
 ## Key Features
 *   **AI-Powered Analysis:** Instantly parse unstructured text to extract loan amount, interest rates, and hidden fees.
